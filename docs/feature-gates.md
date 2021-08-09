@@ -210,9 +210,15 @@ This feature is currently only supported for Nodes running Linux and "encap"
 mode. The support for Windows and other traffic modes will be added in the
 future.
 
+<<<<<<< HEAD
 ### AntreaIPAM
 
 `AntreaIPAM` is a feature that allows flexible control over Pod IP Addressing. This can
+=======
+### FlexibleIPAM
+
+`FlexibleIPAM` is a feature that allows flexible control over Pod IP Addressing. This can
+>>>>>>> Introduce IPPool CRD and FlexibleIPAM feature gate (#2442)
 be achieved by configuring custom resource `IPPool` with desired set of IP ranges.
 The pool can be annotated to Namespace, Deployment or StatefulSet, and Antrea will manage
 IP address assignment for corresponding Pods according to pool definition.
@@ -221,7 +227,11 @@ Note that IP pool annotation can not be updated, but rather re-created. IP Pool 
 extended, but cannot be shrunk if already assigned to a resource.
 
 Traditional `Subnet per Node` IPAM will continue to be used for resources without IP pool
+<<<<<<< HEAD
 annotation, or when `AntreaIPAM` feature is disabled.
+=======
+annotation, or when `FlexibleIPAM` feature is disabled.
+>>>>>>> Introduce IPPool CRD and FlexibleIPAM feature gate (#2442)
 
 Usage example:
 
@@ -236,7 +246,11 @@ spec:
   - start: "10.2.0.12"
     end: "10.2.0.20"
     gateway: "10.2.0.1"
+<<<<<<< HEAD
     prefixLength: 24
+=======
+    prefixLen: 24
+>>>>>>> Introduce IPPool CRD and FlexibleIPAM feature gate (#2442)
 ```
 
 ```yaml
