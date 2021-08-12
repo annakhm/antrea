@@ -332,6 +332,8 @@ type SubnetInfo struct {
 type SubnetIPRange struct {
 	IPRange    `json:",inline"`
 	SubnetInfo `json:",inline"`
+	// VLAN ID for this subnet. Default is 0. String-typed for sake of potential autoselect option.
+	VLAN string `json:"vlan,omitempty"`
 }
 
 type IPPoolStatus struct {
