@@ -59,7 +59,7 @@ func (a *IPPoolAllocator) initIPAllocators(ipPool *v1alpha2.IPPool) (ipallocator
 		if len(ipRange.CIDR) > 0 {
 			allocator, err := ipallocator.NewCIDRAllocator(ipRange.CIDR)
 			if err != nil {
-				return allocators, err
+				return nil, err
 			}
 			allocators = append(allocators, allocator)
 		} else {
@@ -104,14 +104,13 @@ func (a *IPPoolAllocator) appendPoolUsage(ipPool *v1alpha2.IPPool, ip net.IP, st
 		Resource:  resource,
 	}
 
-	newPool := ipPool.DeepCopy()
-	newPool.Status.Usage = append(ipPool.Status.Usage, usageEntry)
-	_, err := a.crdClient.CrdV1alpha2().IPPools().UpdateStatus(context.TODO(), newPool, metav1.UpdateOptions{})
+	ipPool.Status.Usage = append(ipPool.Status.Usage, usageEntry)
+	_, err := a.crdClient.CrdV1alpha2().IPPools().UpdateStatus(context.TODO(), ipPool, metav1.UpdateOptions{})
 	if err != nil {
 		klog.Warningf("IP Pool %s update failed: %+v", ipPool.Name, err)
 		return err
 	}
-	klog.Infof("IP Pool update successful %s: %+v", ipPool.Name, newPool.Status)
+	klog.Infof("IP Pool update successful %s: %+v", ipPool.Name, ipPool.Status)
 	return nil
 
 }
@@ -145,9 +144,9 @@ func (a *IPPoolAllocator) removePoolUsage(ipPool *v1alpha2.IPPool, ip net.IP) er
 // AllocateIP allocates the specified IP. It returns error if the IP is not in the range or already
 // allocated, or in case CRD failed to update its state.
 // In case of success, IP pool CRD status is updated with allocated IP/state/resource.
-// AllocateIP returns subnet detailes for the requested IP, as defined in IP pool spec.
-func (a *IPPoolAllocator) AllocateIP(ip net.IP, state v1alpha2.IPPoolUsageState, resource string) (v1alpha2.SubnetSpec, error) {
-	var subnetSpec v1alpha2.SubnetSpec
+// AllocateIP returns subnet details for the requested IP, as defined in IP pool spec.
+func (a *IPPoolAllocator) AllocateIP(ip net.IP, state v1alpha2.IPPoolUsageState, resource string) (v1alpha2.SubnetInfo, error) {
+	var subnetSpec v1alpha2.SubnetInfo
 	// Retry on CRD update conflict which is caused by multiple agents updating a pool at same time.
 	err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
 		ipPool, allocators, err := a.readPoolAndInitIPAllocators()
@@ -172,9 +171,9 @@ func (a *IPPoolAllocator) AllocateIP(ip net.IP, state v1alpha2.IPPoolUsageState,
 			return fmt.Errorf("IP %v does not belong to IP pool %s", ip, a.ipPoolName)
 		}
 
+		subnetSpec = ipPool.Spec.IPRanges[index].SubnetInfo
 		err = a.appendPoolUsage(ipPool, ip, state, resource)
 
-		subnetSpec = *ipPool.Spec.IPRanges[index].SubnetSpec.DeepCopy()
 		return err
 	})
 
@@ -187,9 +186,9 @@ func (a *IPPoolAllocator) AllocateIP(ip net.IP, state v1alpha2.IPPoolUsageState,
 // AllocateNext allocates the next available IP. It returns error if pool is exausted,
 // or in case CRD failed to update its state.
 // In case of success, IP pool CRD status is updated with allocated IP/state/resource.
-// AllocateIP returns subnet detailes for the requested IP, as defined in IP pool spec.
-func (a *IPPoolAllocator) AllocateNext(state v1alpha2.IPPoolUsageState, resource string) (net.IP, v1alpha2.SubnetSpec, error) {
-	var subnetSpec v1alpha2.SubnetSpec
+// AllocateIP returns subnet details for the requested IP, as defined in IP pool spec.
+func (a *IPPoolAllocator) AllocateNext(state v1alpha2.IPPoolUsageState, resource string) (net.IP, v1alpha2.SubnetInfo, error) {
+	var subnetSpec v1alpha2.SubnetInfo
 	var ip net.IP
 	// Retry on CRD update conflict which is caused by multiple agents updating a pool at same time.
 	err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
@@ -213,10 +212,8 @@ func (a *IPPoolAllocator) AllocateNext(state v1alpha2.IPPoolUsageState, resource
 			return fmt.Errorf("Failed to allocate IP: Pool %s is exausted", a.ipPoolName)
 		}
 
-		err = a.appendPoolUsage(ipPool, ip, state, resource)
-
-		subnetSpec = *ipPool.Spec.IPRanges[index].SubnetSpec.DeepCopy()
-		return err
+		subnetSpec = ipPool.Spec.IPRanges[index].SubnetInfo
+		return a.appendPoolUsage(ipPool, ip, state, resource)
 	})
 
 	if err != nil {

@@ -40,12 +40,12 @@ func TestAllocateIP(t *testing.T) {
 		Start: "10.2.2.100",
 		End:   "10.2.2.120",
 	}
-	subnetSpec := crdv1a2.SubnetSpec{
+	subnetSpec := crdv1a2.SubnetInfo{
 		Gateway:      "10.2.2.1",
 		PrefixLength: 24,
 	}
 	subnetRange := crdv1a2.SubnetIPRange{IPRange: ipRange,
-		SubnetSpec: subnetSpec}
+		SubnetInfo: subnetSpec}
 
 	pool := crdv1a2.IPPool{
 		ObjectMeta: metav1.ObjectMeta{Name: poolName},
@@ -78,12 +78,12 @@ func TestAllocateNext(t *testing.T) {
 		Start: "10.2.2.100",
 		End:   "10.2.2.120",
 	}
-	subnetSpec := crdv1a2.SubnetSpec{
+	subnetSpec := crdv1a2.SubnetInfo{
 		Gateway:      "10.2.2.1",
 		PrefixLength: 24,
 	}
 	subnetRange := crdv1a2.SubnetIPRange{IPRange: ipRange,
-		SubnetSpec: subnetSpec}
+		SubnetInfo: subnetSpec}
 
 	pool := crdv1a2.IPPool{
 		ObjectMeta: metav1.ObjectMeta{Name: poolName},
@@ -107,14 +107,14 @@ func TestAllocateNextMultiRange(t *testing.T) {
 		End:   "10.2.2.101",
 	}
 	ipRange2 := crdv1a2.IPRange{CIDR: "10.2.2.0/28"}
-	subnetSpec := crdv1a2.SubnetSpec{
+	subnetSpec := crdv1a2.SubnetInfo{
 		Gateway:      "10.2.2.1",
 		PrefixLength: 24,
 	}
 	subnetRange1 := crdv1a2.SubnetIPRange{IPRange: ipRange1,
-		SubnetSpec: subnetSpec}
+		SubnetInfo: subnetSpec}
 	subnetRange2 := crdv1a2.SubnetIPRange{IPRange: ipRange2,
-		SubnetSpec: subnetSpec}
+		SubnetInfo: subnetSpec}
 
 	pool := crdv1a2.IPPool{
 		ObjectMeta: metav1.ObjectMeta{Name: poolName},
@@ -140,14 +140,14 @@ func TestAllocateReleaseSequence(t *testing.T) {
 		End:   "2001::1000",
 	}
 	ipRange2 := crdv1a2.IPRange{CIDR: "2001::0/124"}
-	subnetSpec := crdv1a2.SubnetSpec{
+	subnetSpec := crdv1a2.SubnetInfo{
 		Gateway:      "2001::1",
 		PrefixLength: 64,
 	}
 	subnetRange1 := crdv1a2.SubnetIPRange{IPRange: ipRange1,
-		SubnetSpec: subnetSpec}
+		SubnetInfo: subnetSpec}
 	subnetRange2 := crdv1a2.SubnetIPRange{IPRange: ipRange2,
-		SubnetSpec: subnetSpec}
+		SubnetInfo: subnetSpec}
 
 	pool := crdv1a2.IPPool{
 		ObjectMeta: metav1.ObjectMeta{Name: poolName},
