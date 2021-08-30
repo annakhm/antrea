@@ -3876,15 +3876,7 @@ data:
 
     # Enable flexible IPAM mode for Antrea. This mode allows to assign IP Ranges to Namespaces,
     # Deployments and StatefulSets via IP Pool annotation.
-    <<<<<<< HEAD
-    <<<<<<< HEAD
     #  AntreaIPAM: false
-    =======
-    #  FlexibleIPAM: false
-    >>>>>>> Introduce IPPool CRD and FlexibleIPAM feature gate (#2442)
-    =======
-    #  AntreaIPAM: false
-    >>>>>>> Polish IP Pool CRD and rename feature gate
 
     # Name of the OpenVSwitch bridge antrea-agent will create and use.
     # Make sure it doesn't conflict with your existing OpenVSwitch bridges.
@@ -4041,15 +4033,7 @@ data:
 
     # Enable flexible IPAM mode for Antrea. This mode allows to assign IP Ranges to Namespaces,
     # Deployments and StatefulSets via IP Pool annotation.
-    <<<<<<< HEAD
-    <<<<<<< HEAD
     #  AntreaIPAM: false
-    =======
-    #  FlexibleIPAM: false
-    >>>>>>> Introduce IPPool CRD and FlexibleIPAM feature gate (#2442)
-    =======
-    #  AntreaIPAM: false
-    >>>>>>> Polish IP Pool CRD and rename feature gate
     #
     # The port for the antrea-controller APIServer to serve on.
     # Note that if it's set to another value, the `containerPort` of the `api` port of the
@@ -4095,7 +4079,7 @@ metadata:
   annotations: {}
   labels:
     app: antrea
-  name: antrea-config-h8bhmg7k5d
+  name: antrea-config-2bd8gb68gm
   namespace: kube-system
 ---
 apiVersion: v1
@@ -4166,7 +4150,7 @@ spec:
             fieldRef:
               fieldPath: spec.serviceAccountName
         - name: ANTREA_CONFIG_MAP_NAME
-          value: antrea-config-h8bhmg7k5d
+          value: antrea-config-2bd8gb68gm
         image: projects.registry.vmware.com/antrea/antrea-ubuntu:latest
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -4217,7 +4201,7 @@ spec:
         key: node-role.kubernetes.io/master
       volumes:
       - configMap:
-          name: antrea-config-h8bhmg7k5d
+          name: antrea-config-2bd8gb68gm
         name: antrea-config
       - name: antrea-controller-tls
         secret:
@@ -4501,7 +4485,7 @@ spec:
           path: /home/kubernetes/bin
         name: host-cni-bin
       - configMap:
-          name: antrea-config-h8bhmg7k5d
+          name: antrea-config-2bd8gb68gm
         name: antrea-config
       - hostPath:
           path: /etc/cni/net.d
