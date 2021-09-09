@@ -37,6 +37,7 @@ import (
 	"antrea.io/antrea/pkg/agent/cniserver/ipam"
 	ipamtest "antrea.io/antrea/pkg/agent/cniserver/ipam/testing"
 	cniservertest "antrea.io/antrea/pkg/agent/cniserver/testing"
+	argtypes "antrea.io/antrea/pkg/agent/cniserver/types"
 	"antrea.io/antrea/pkg/agent/config"
 	"antrea.io/antrea/pkg/agent/interfacestore"
 	openflowtest "antrea.io/antrea/pkg/agent/openflow/testing"
@@ -158,7 +159,7 @@ func TestIPAMService(t *testing.T) {
 		// Prepare cached IPAM result which will be deleted later.
 		ipamMock.EXPECT().Add(gomock.Any(), gomock.Any()).Times(1)
 		cniConfig, _ := cniServer.checkRequestMessage(requestMsg)
-		_, err := ipam.ExecIPAMAdd(cniConfig.CniCmdArgs, cniConfig.IPAM.Type, cniConfig.getInfraContainer())
+		_, err := ipam.ExecIPAMAdd(cniConfig.CniCmdArgs, cniConfig.K8sArgs, cniConfig.IPAM.Type, cniConfig.getInfraContainer())
 		require.Nil(t, err, "expected no Add error")
 
 		ipamMock.EXPECT().Del(gomock.Any(), gomock.Any()).Return(fmt.Errorf("IPAM delete error"))
@@ -168,7 +169,7 @@ func TestIPAMService(t *testing.T) {
 
 		// Cached result would be removed after a successful retry of IPAM DEL.
 		ipamMock.EXPECT().Del(gomock.Any(), gomock.Any()).Return(nil)
-		err = ipam.ExecIPAMDelete(cniConfig.CniCmdArgs, cniConfig.IPAM.Type, cniConfig.getInfraContainer())
+		err = ipam.ExecIPAMDelete(cniConfig.CniCmdArgs, cniConfig.K8sArgs, cniConfig.IPAM.Type, cniConfig.getInfraContainer())
 		require.Nil(t, err, "expected no Del error")
 
 	})
@@ -185,14 +186,14 @@ func TestIPAMService(t *testing.T) {
 		ipamMock.EXPECT().Del(gomock.Any(), gomock.Any()).Times(2)
 		cniConfig, response := cniServer.checkRequestMessage(requestMsg)
 		require.Nil(t, response, "expected no rpc error")
-		ipamResult, err := ipam.ExecIPAMAdd(cniConfig.CniCmdArgs, cniConfig.IPAM.Type, cniConfig.getInfraContainer())
+		ipamResult, err := ipam.ExecIPAMAdd(cniConfig.CniCmdArgs, cniConfig.K8sArgs, cniConfig.IPAM.Type, cniConfig.getInfraContainer())
 		require.Nil(t, err, "expected no IPAM add error")
-		ipamResult2, err := ipam.ExecIPAMAdd(cniConfig.CniCmdArgs, cniConfig.IPAM.Type, cniConfig.getInfraContainer())
+		ipamResult2, err := ipam.ExecIPAMAdd(cniConfig.CniCmdArgs, cniConfig.K8sArgs, cniConfig.IPAM.Type, cniConfig.getInfraContainer())
 		require.Nil(t, err, "expected no IPAM add error")
 		assert.Equal(t, ipamResult, ipamResult2)
-		err = ipam.ExecIPAMDelete(cniConfig.CniCmdArgs, cniConfig.IPAM.Type, cniConfig.getInfraContainer())
+		err = ipam.ExecIPAMDelete(cniConfig.CniCmdArgs, cniConfig.K8sArgs, cniConfig.IPAM.Type, cniConfig.getInfraContainer())
 		require.Nil(t, err, "expected no IPAM del error")
-		err = ipam.ExecIPAMDelete(cniConfig.CniCmdArgs, cniConfig.IPAM.Type, cniConfig.getInfraContainer())
+		err = ipam.ExecIPAMDelete(cniConfig.CniCmdArgs, cniConfig.K8sArgs, cniConfig.IPAM.Type, cniConfig.getInfraContainer())
 		require.Nil(t, err, "expected no IPAM del error")
 	})
 
@@ -201,18 +202,18 @@ func TestIPAMService(t *testing.T) {
 		ipamMock.EXPECT().Del(gomock.Any(), gomock.Any()).Times(2)
 		cniConfig, response := cniServer.checkRequestMessage(requestMsg)
 		require.Nil(t, response, "expected no rpc error")
-		_, err := ipam.ExecIPAMAdd(cniConfig.CniCmdArgs, cniConfig.IPAM.Type, cniConfig.getInfraContainer())
+		_, err := ipam.ExecIPAMAdd(cniConfig.CniCmdArgs, cniConfig.K8sArgs, cniConfig.IPAM.Type, cniConfig.getInfraContainer())
 		require.Nil(t, err, "expected no IPAM add error")
 		workerContainerID := "test-infra-2222222"
 		args2 := cniservertest.GenerateCNIArgs(testPodName, testPodNamespace, workerContainerID)
 		requestMsg2, _ := newRequest(args2, networkCfg, "", t)
 		cniConfig2, response := cniServer.checkRequestMessage(requestMsg2)
 		require.Nil(t, response, "expected no rpc error")
-		_, err = ipam.ExecIPAMAdd(cniConfig2.CniCmdArgs, cniConfig.IPAM.Type, cniConfig2.getInfraContainer())
+		_, err = ipam.ExecIPAMAdd(cniConfig2.CniCmdArgs, cniConfig.K8sArgs, cniConfig.IPAM.Type, cniConfig2.getInfraContainer())
 		require.Nil(t, err, "expected no IPAM add error")
-		err = ipam.ExecIPAMDelete(cniConfig.CniCmdArgs, cniConfig.IPAM.Type, cniConfig.getInfraContainer())
+		err = ipam.ExecIPAMDelete(cniConfig.CniCmdArgs, cniConfig.K8sArgs, cniConfig.IPAM.Type, cniConfig.getInfraContainer())
 		require.Nil(t, err, "expected no IPAM del error")
-		err = ipam.ExecIPAMDelete(cniConfig2.CniCmdArgs, cniConfig.IPAM.Type, cniConfig2.getInfraContainer())
+		err = ipam.ExecIPAMDelete(cniConfig2.CniCmdArgs, cniConfig.K8sArgs, cniConfig.IPAM.Type, cniConfig2.getInfraContainer())
 		require.Nil(t, err, "expected no IPAM del error")
 	})
 }
@@ -240,7 +241,7 @@ func TestValidatePrevResult(t *testing.T) {
 	cniServer := newCNIServer(t)
 	cniVersion := "0.4.0"
 	networkCfg := generateNetworkConfiguration("testCfg", cniVersion)
-	k8sPodArgs := &k8sArgs{}
+	k8sPodArgs := &argtypes.K8sArgs{}
 	cnitypes.LoadArgs(args, k8sPodArgs)
 	networkCfg.PrevResult = nil
 	ips := []string{"10.1.2.100/24,10.1.2.1,4"}

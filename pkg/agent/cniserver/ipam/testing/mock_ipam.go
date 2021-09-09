@@ -24,6 +24,8 @@ import (
 	current "github.com/containernetworking/cni/pkg/types/current"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
+
+	argtypes "antrea.io/antrea/pkg/agent/cniserver/types"
 )
 
 // MockIPAMDriver is a mock of IPAMDriver interface
@@ -90,4 +92,10 @@ func (m *MockIPAMDriver) Del(arg0 *invoke.Args, arg1 []byte) error {
 func (mr *MockIPAMDriverMockRecorder) Del(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Del", reflect.TypeOf((*MockIPAMDriver)(nil).Del), arg0, arg1)
+}
+
+// We don't record a call to Owns, since its a helper method, and rely on functional calls 
+// such as Add, Del in testing
+func (m *MockIPAMDriver) Owns(arg0 *invoke.Args, arg1 *argtypes.K8sArgs, arg2 []byte) bool {
+	return true
 }
