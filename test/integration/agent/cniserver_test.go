@@ -649,7 +649,7 @@ func cmdAddDelCheckTest(testNS ns.NetNS, tc testCase, dataDir string) {
 func TestAntreaServerFunc(t *testing.T) {
 	controller := mock.NewController(t)
 	defer controller.Finish()
-	ipamMock = ipamtest.NewMockIPAMDriver(controller)
+	ipamMock = ipamtest.NewMockIPAMDriver(controller, nil)
 	_ = ipam.RegisterIPAMDriver("mock", ipamMock)
 	ovsServiceMock = ovsconfigtest.NewMockOVSBridgeClient(controller)
 	ofServiceMock = openflowtest.NewMockClient(controller)
