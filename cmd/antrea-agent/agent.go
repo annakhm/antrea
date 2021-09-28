@@ -25,7 +25,7 @@ import (
 	"antrea.io/antrea/pkg/agent"
 	"antrea.io/antrea/pkg/agent/apiserver"
 	"antrea.io/antrea/pkg/agent/cniserver"
-	_ "antrea.io/antrea/pkg/agent/cniserver/ipam"
+	"antrea.io/antrea/pkg/agent/cniserver/ipam"
 	"antrea.io/antrea/pkg/agent/config"
 	"antrea.io/antrea/pkg/agent/controller/egress"
 	"antrea.io/antrea/pkg/agent/controller/networkpolicy"
@@ -334,6 +334,18 @@ func run(o *Options) error {
 			return fmt.Errorf("failed to start NPL agent: %v", err)
 		}
 		go nplController.Run(stopCh)
+	}
+
+	// Start the Antrea IPAM agent.
+	if features.DefaultFeatureGate.Enabled(features.AntreaIPAM) {
+		ipamController, err := ipam.InitializeAntreaController(
+			k8sClient,
+			crdClient,
+			informerFactory)
+		if err != nil {
+			return fmt.Errorf("failed to start Antrea IPAM agent: %v", err)
+		}
+		go ipamController.Run(stopCh)
 	}
 
 	log.StartLogFileNumberMonitor(stopCh)

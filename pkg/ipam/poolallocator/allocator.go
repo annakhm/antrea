@@ -251,3 +251,49 @@ func (a *IPPoolAllocator) Release(ip net.IP) error {
 	}
 	return err
 }
+
+// ReleaseResource releases the IP associated with specified resource. It returns error if the resource is not present in state or in case CRD failed to update its state.
+// In case of success, IP pool CRD status is updated with released IP/state/resource.
+func (a *IPPoolAllocator) ReleaseResource(resource string) error {
+
+	// Retry on CRD update conflict which is caused by multiple agents updating a pool at same time.
+	err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		ipPool, err := a.crdClient.CrdV1alpha2().IPPools().Get(context.TODO(), a.ipPoolName, metav1.GetOptions{})
+
+		if err != nil {
+			return err
+		}
+
+		// Mark allocated IPs from pool status as unavailable
+		for _, ip := range ipPool.Status.Usage {
+			if ip.Resource == resource {
+				return a.removePoolUsage(ipPool, net.ParseIP(ip.IPAddress))
+
+			}
+		}
+
+		return fmt.Errorf("Failed to find record of IP allocated to resource %s in pool %s", resource, a.ipPoolName)
+	})
+
+	if err != nil {
+		klog.Errorf("Failed to release IP address for resource %s from pool %s: %+v", resource, a.ipPoolName, err)
+	}
+	return err
+}
+
+// HasResource checks whether an IP was associated with specified resource. It returns error if the resource is not present in state or in case CRD failed to update its state.
+func (a *IPPoolAllocator) HasResource(resource string) (bool, error) {
+
+	ipPool, err := a.crdClient.CrdV1alpha2().IPPools().Get(context.TODO(), a.ipPoolName, metav1.GetOptions{})
+
+	if err != nil {
+		return false, err
+	}
+
+	for _, ip := range ipPool.Status.Usage {
+		if ip.Resource == resource {
+			return true, nil
+		}
+	}
+	return false, nil
+}
