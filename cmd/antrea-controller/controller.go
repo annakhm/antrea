@@ -43,6 +43,7 @@ import (
 	"antrea.io/antrea/pkg/controller/egress"
 	egressstore "antrea.io/antrea/pkg/controller/egress/store"
 	"antrea.io/antrea/pkg/controller/grouping"
+	antreaipam "antrea.io/antrea/pkg/controller/ipam"
 	"antrea.io/antrea/pkg/controller/metrics"
 	"antrea.io/antrea/pkg/controller/networkpolicy"
 	"antrea.io/antrea/pkg/controller/networkpolicy/store"
@@ -124,6 +125,7 @@ func run(o *Options) error {
 	cgInformer := crdInformerFactory.Crd().V1alpha3().ClusterGroups()
 	egressInformer := crdInformerFactory.Crd().V1alpha2().Egresses()
 	externalIPPoolInformer := crdInformerFactory.Crd().V1alpha2().ExternalIPPools()
+	statefulSetInformer := informerFactory.Apps().V1().StatefulSets()
 
 	clusterIdentityAllocator := clusteridentity.NewClusterIdentityAllocator(
 		env.GetAntreaNamespace(),
@@ -265,6 +267,14 @@ func run(o *Options) error {
 		return fmt.Errorf("error generating Cipher Suite list: %v", err)
 	}
 
+	var antreaIPAMController *antreaipam.AntreaIPAMController
+	if features.DefaultFeatureGate.Enabled(features.AntreaIPAM) {
+		antreaIPAMController = antreaipam.NewAntreaIPAMController(crdClient,
+			statefulSetInformer,
+			namespaceInformer,
+			podInformer)
+	}
+
 	apiServerConfig, err := createAPIServerConfig(o.config.ClientConnection.Kubeconfig,
 		client,
 		aggregatorClient,
@@ -370,6 +380,10 @@ func run(o *Options) error {
 	}
 	if features.DefaultFeatureGate.Enabled(features.Egress) {
 		go egressController.Run(stopCh)
+	}
+
+	if antreaIPAMController != nil {
+		go antreaIPAMController.Run(stopCh)
 	}
 
 	<-stopCh

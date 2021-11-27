@@ -231,6 +231,14 @@ rules:
       - externalippools/status
     verbs:
       - update
+  - apiGroups:
+      - apps
+    resources:
+      - statefulsets
+    verbs:
+      - get
+      - list
+      - watch
   # Deprecated in v1.0.0.
   - apiGroups:
     - clusterinformation.antrea.tanzu.vmware.com
