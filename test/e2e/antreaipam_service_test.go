@@ -17,7 +17,7 @@ package e2e
 import (
 	"testing"
 
-	"antrea.io/antrea/pkg/agent/cniserver/ipam"
+	annotation "antrea.io/antrea/pkg/ipam"
 )
 
 func TestAntreaIPAMService(t *testing.T) {
@@ -36,7 +36,7 @@ func TestAntreaIPAMService(t *testing.T) {
 	}
 	defer deleteIPPoolWrapper(t, data, ippool.Name)
 	annotations := map[string]string{}
-	annotations[ipam.AntreaIPAMAnnotationKey] = ippool.Name
+	annotations[annotation.AntreaIPAMAnnotationKey] = ippool.Name
 	err = data.createNamespaceWithAnnotations(testAntreaIPAMNamespace, annotations)
 	if err != nil {
 		t.Fatalf("Creating AntreaIPAM Namespace failed, err=%+v", err)

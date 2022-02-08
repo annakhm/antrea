@@ -33,8 +33,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	utilnet "k8s.io/utils/net"
 
-	"antrea.io/antrea/pkg/agent/cniserver/ipam"
 	crdv1alpha2 "antrea.io/antrea/pkg/apis/crd/v1alpha2"
+	annotation "antrea.io/antrea/pkg/ipam"
 )
 
 var (
@@ -94,7 +94,7 @@ func TestAntreaIPAM(t *testing.T) {
 	}
 	defer deleteIPPoolWrapper(t, data, ippool.Name)
 	annotations := map[string]string{}
-	annotations[ipam.AntreaIPAMAnnotationKey] = ippool.Name
+	annotations[annotation.AntreaIPAMAnnotationKey] = ippool.Name
 	err = data.createNamespaceWithAnnotations(testAntreaIPAMNamespace, annotations)
 	if err != nil {
 		t.Fatalf("Creating AntreaIPAM Namespace failed, err=%+v", err)
@@ -214,7 +214,7 @@ func testAntreaIPAMStatefulSet(t *testing.T, data *TestData, dedicatedIPPoolKey 
 			sts.Spec.Template.Annotations = map[string]string{}
 		}
 		if dedicatedIPPoolKey != nil {
-			sts.Spec.Template.Annotations[ipam.AntreaIPAMAnnotationKey] = ipPoolName
+			sts.Spec.Template.Annotations[annotation.AntreaIPAMAnnotationKey] = ipPoolName
 		}
 	}
 	_, cleanup, err := data.createStatefulSet(stsName, testAntreaIPAMNamespace, int32(size), agnhostContainerName, agnhostImage, []string{"sleep", "3600"}, nil, mutateFunc)
@@ -243,7 +243,7 @@ func testAntreaIPAMStatefulSet(t *testing.T, data *TestData, dedicatedIPPoolKey 
 			pod.Annotations = map[string]string{}
 		}
 		if dedicatedIPPoolKey != nil {
-			pod.Annotations[ipam.AntreaIPAMAnnotationKey] = ipPoolName
+			pod.Annotations[annotation.AntreaIPAMAnnotationKey] = ipPoolName
 		}
 	}
 	podName := randName("test-standalone-pod-")
