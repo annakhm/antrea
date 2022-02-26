@@ -2374,7 +2374,9 @@ func (data *TestData) createStatefulSet(name string, ns string, size int32, ctrN
 		},
 		Spec: stsSpec,
 	}
-	mutateFunc(sts)
+	if mutateFunc != nil {
+		mutateFunc(sts)
+	}
 	resSTS, err := data.clientset.AppsV1().StatefulSets(ns).Create(context.TODO(), sts, metav1.CreateOptions{})
 	if err != nil {
 		return nil, nil, err
